@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>キャッシュフロー管理システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            min-height: 100vh;
+            line-height: 1.4;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            background: #2a2a2a;
+            border-bottom: 1px solid #404040;
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        
+        .settings-btn {
+            background: #404040;
+            border: none;
+            color: #ffffff;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+        
+        .settings-btn:hover {
+            background: #505050;
+        }
+        
+        .container {
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+        
+        .balance-section {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .balance-card {
+            flex: 1;
+            background: #2a2a2a;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+        }
+        
+        .balance-label {
+            color: #888888;
+            font-size: 0.7rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .balance-amount {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #2a2a2a;
+            border-radius: 8px;
+            border: 1px solid #404040;
+            overflow: hidden;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            background: transparent;
+            border: none;
+            color: #888888;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .tab.active {
+            background: #0084ff;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            background: #2a2a2a;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .quick-form {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 0.5rem;
+            align-items: end;
+            margin-bottom: 0.75rem;
+        }
+        
+        .form-group {
+            margin-bottom: 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.25rem;
+            color: #cccccc;
+            font-weight: 500;
+            font-size: 0.7rem;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 0.5rem;
+            background: #1a1a1a;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            color: #ffffff;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0084ff;
+        }
+        
+        input::placeholder {
+            color: #666666;
+            font-size: 0.8rem;
+        }
+        
+        .add-btn {
+            background: #0084ff;
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            width: 50px;
+            height: 35px;
+        }
+        
+        .add-btn:hover {
+            background: #0066cc;
+        }
+        
+        .transaction-list {
+            height: calc(100% - 120px);
+            overflow-y: auto;
+            margin-top: 0.5rem;
+            border-radius: 6px;
+            border: 1px solid #404040;
+        }
+        
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid #404040;
+            transition: background-color 0.2s ease;
+        }
+        
+        .transaction-item:hover {
+            background-color: #333333;
+        }
+        
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .transaction-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .transaction-date {
+            font-size: 0.7rem;
+            color: #888888;
+            margin-bottom: 0.125rem;
+        }
+        
+        .transaction-description {
+            font-weight: 500;
+            color: #ffffff;
+            font-size: 0.85rem;
+            margin-bottom: 0.125rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .transaction-method {
+            font-size: 0.7rem;
+            background: #404040;
+            padding: 0.125rem 0.375rem;
+            border-radius: 3px;
+            display: inline-block;
+            color: #cccccc;
+        }
+        
+        .transaction-amount {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+            white-space: nowrap;
+        }
+        
+        .transaction-amount.income {
+            color: #00d26a;
+        }
+        
+        .transaction-amount.expense {
+            color: #ff6b6b;
+        }
+        
+        .delete-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            width: auto;
+        }
+        
+        .calendar-mini {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #404040;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        
+        .calendar-header-mini {
+            background: #333333;
+            padding: 0.25rem;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.6rem;
+            color: #cccccc;
+        }
+        
+        .calendar-day-mini {
+            background: #2a2a2a;
+            min-height: 35px;
+            padding: 0.25rem;
+            font-size: 0.6rem;
+            position: relative;
+        }
+        
+        .calendar-day-mini.has-transaction {
+            background: #1a4d3a;
+        }
+        
+        .calendar-day-number-mini {
+            font-weight: 600;
+            color: #ffffff;
+            font-size: 0.6rem;
+        }
+        
+        .calendar-transactions-mini {
+            font-size: 0.5rem;
+            color: #cccccc;
+            margin-top: 0.125rem;
+        }
+        
+        .calendar-controls {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .calendar-controls select {
+            width: auto;
+            min-width: 80px;
+            padding: 0.375rem;
+            font-size: 0.8rem;
+        }
+        
+        /* Settings Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: #2a2a2a;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            padding: 1rem;
+            width: 95%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #888888;
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: auto;
+            padding: 0;
+        }
+        
+        .card-setting {
+            background: #333333;
+            border: 1px solid #404040;
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .card-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+            font-size: 0.9rem;
+        }
+        
+        .card-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+        
+        .upcoming-payment {
+            background: #1a3d5c;
+            border: 1px solid #2d5a87;
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .save-settings-btn {
+            background: #0084ff;
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        
+        /* Scrollbar styling */
+        .container::-webkit-scrollbar,
+        .transaction-list::-webkit-scrollbar,
+        .tab-content::-webkit-scrollbar {
+            width: 3px;
+        }
+        
+        .container::-webkit-scrollbar-track,
+        .transaction-list::-webkit-scrollbar-track,
+        .tab-content::-webkit-scrollbar-track {
+            background: #333333;
+        }
+        
+        .container::-webkit-scrollbar-thumb,
+        .transaction-list::-webkit-scrollbar-thumb,
+        .tab-content::-webkit-scrollbar-thumb {
+            background: #666666;
+            border-radius: 3px;
+        }
+        
+        @media (max-width: 480px) {
+            .quick-form {
+                grid-template-columns: 1fr;
+                gap: 0.375rem;
+            }
+            
+            .add-btn {
+                width: 100%;
+                height: auto;
+                padding: 0.75rem;
+            }
+            
+            .balance-amount {
+                font-size: 1rem;
+            }
+            
+            .calendar-day-mini {
+                min-height: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">💰 キャッシュフロー</div>
+        <button class="settings-btn" onclick="openSettings()">⚙️</button>
+    </div>
+    
+    <div class="container">
+        <!-- 残高表示 -->
+        <div class="balance-section">
+            <div class="balance-card">
+                <div class="balance-label">現金残高</div>
+                <div class="balance-amount" id="cashBalance">¥0</div>
+            </div>
+            <div class="balance-card">
+                <div class="balance-label">総残高</div>
+                <div class="balance-amount" id="totalBalance">¥0</div>
+            </div>
+        </div>
+        
+        <!-- タブ -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('income')">収入</button>
+            <button class="tab" onclick="switchTab('expense')">支出</button>
+            <button class="tab" onclick="switchTab('calendar')">カレンダー</button>
+        </div>
+        
+        <!-- 収入タブ -->
+        <div id="income" class="tab-content active">
+            <form id="incomeForm">
+                <div class="quick-form">
+                    <div class="form-group">
+                        <label>収入内容</label>
+                        <input type="text" id="incomeDescription" placeholder="給与" required>
+                    </div>
+                    <div class="form-group">
+                        <label>金額</label>
+                        <input type="number" id="incomeAmount" placeholder="250000" required>
+                    </div>
+                    <div class="form-group">
+                        <label></label>
+                        <button type="submit" class="add-btn">追加</button>
+                    </div>
+                </div>
+                <div class="quick-form">
+                    <div class="form-group">
+                        <label>勤務先</label>
+                        <select id="incomeSource" required>
+                            <option value="勤務先A">勤務先A</option>
+                            <option value="勤務先B">勤務先B</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>日付</label>
+                        <input type="date" id="incomeDate" required>
+                    </div>
+                    <div></div>
+                </div>
+            </form>
+            
+            <div class="transaction-list">
+                <div id="incomeList"></div>
+            </div>
+        </div>
+        
+        <!-- 支出タブ -->
+        <div id="expense" class="tab-content">
+            <form id="expenseForm">
+                <div class="quick-form">
+                    <div class="form-group">
+                        <label>支出内容</label>
+                        <input type="text" id="expenseDescription" placeholder="買い物" required>
+                    </div>
+                    <div class="form-group">
+                        <label>金額</label>
+                        <input type="number" id="expenseAmount" placeholder="3500" required>
+                    </div>
+                    <div class="form-group">
+                        <label></label>
+                        <button type="submit" class="add-btn">追加</button>
+                    </div>
+                </div>
+                <div class="quick-form">
+                    <div class="form-group">
+                        <label>支払い方法</label>
+                        <select id="expenseMethod" required>
+                            <option value="現金">現金</option>
+                            <option value="カードA">カードA</option>
+                            <option value="カードB">カードB</option>
+                            <option value="カードC">カードC</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>日付</label>
+                        <input type="date" id="expenseDate" required>
+                    </div>
+                    <div></div>
+                </div>
+            </form>
+            
+            <div class="transaction-list">
+                <div id="expenseList"></div>
+            </div>
+        </div>
+        
+        <!-- カレンダータブ -->
+        <div id="calendar" class="tab-content">
+            <div class="calendar-controls">
+                <select id="calendarYear">
+                    <option value="2024">2024年</option>
+                    <option value="2025" selected>2025年</option>
+                    <option value="2026">2026年</option>
+                </select>
+                <select id="calendarMonth">
+                    <option value="0">1月</option>
+                    <option value="1">2月</option>
+                    <option value="2">3月</option>
+                    <option value="3">4月</option>
+                    <option value="4">5月</option>
+                    <option value="5">6月</option>
+                    <option value="6">7月</option>
+                    <option value="7">8月</option>
+                    <option value="8">9月</option>
+                    <option value="9">10月</option>
+                    <option value="10">11月</option>
+                    <option value="11">12月</option>
+                </select>
+            </div>
+            <div class="calendar-mini" id="calendarGrid"></div>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">カード設定</div>
+                <button class="close-btn" onclick="closeSettings()">&times;</button>
+            </div>
+            
+            <div class="card-setting">
+                <div class="card-name">カードA</div>
+                <div class="card-form">
+                    <div class="form-group">
+                        <label>締め日</label>
+                        <input type="number" id="cardAClose" placeholder="15" min="1" max="31">
+                    </div>
+                    <div class="form-group">
+                        <label>支払日</label>
+                        <input type="number" id="cardAPay" placeholder="10" min="1" max="31">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-setting">
+                <div class="card-name">カードB</div>
+                <div class="card-form">
+                    <div class="form-group">
+                        <label>締め日</label>
+                        <input type="number" id="cardBClose" placeholder="31" min="1" max="31">
+                    </div>
+                    <div class="form-group">
+                        <label>支払日</label>
+                        <input type="number" id="cardBPay" placeholder="27" min="1" max="31">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-setting">
+                <div class="card-name">カードC</div>
+                <div class="card-form">
+                    <div class="form-group">
+                        <label>締め日</label>
+                        <input type="number" id="cardCClose" placeholder="5" min="1" max="31">
+                    </div>
+                    <div class="form-group">
+                        <label>支払日</label>
+                        <input type="number" id="cardCPay" placeholder="25" min="1" max="31">
+                    </div>
+                </div>
+            </div>
+            
+            <button class="save-settings-btn" onclick="saveCardSettings()">設定を保存</button>
+            
+            <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; color: #ffffff;">今月の予定支払い</div>
+            <div id="upcomingPayments"></div>
+        </div>
+    </div>
+
+    <script>
+        // データストレージ
+        let transactions = [];
+        let cardSettings = {
+            cardA: { close: 15, pay: 10 },
+            cardB: { close: 31, pay: 27 },
+            cardC: { close: 5, pay: 25 }
+        };
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            updateBalances();
+            displayTransactions();
+            setDefaultDates();
+            generateCalendar();
+        });
+        
+        // デフォルト日付設定
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('incomeDate').value = today;
+            document.getElementById('expenseDate').value = today;
+            
+            const currentDate = new Date();
+            document.getElementById('calendarYear').value = currentDate.getFullYear();
+            document.getElementById('calendarMonth').value = currentDate.getMonth();
+        }
+        
+        // タブ切り替え
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'calendar') {
+                generateCalendar();
+            }
+        }
+        
+        // 設定モーダル
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('active');
+            displayUpcomingPayments();
+        }
+        
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+        
+        // 収入フォーム処理
+        document.getElementById('incomeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const transaction = {
+                id: Date.now(),
+                type: 'income',
+                description: document.getElementById('incomeDescription').value,
+                source: document.getElementById('incomeSource').value,
+                amount: parseInt(document.getElementById('incomeAmount').value),
+                date: document.getElementById('incomeDate').value,
+                method: '現金'
+            };
+            
+            transactions.push(transaction);
+            updateBalances();
+            displayTransactions();
+            generateCalendar();
+            
+            // フォームクリア（金額以外）
+            document.getElementById('incomeDescription').value = '';
+            document.getElementById('incomeAmount').value = '';
+        });
+        
+        // 支出フォーム処理
+        document.getElementById('expenseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const transaction = {
+                id: Date.now(),
+                type: 'expense',
+                description: document.getElementById('expenseDescription').value,
+                amount: parseInt(document.getElementById('expenseAmount').value),
+                date: document.getElementById('expenseDate').value,
+                method: document.getElementById('expenseMethod').value,
+                category: '食費'
+            };
+            
+            transactions.push(transaction);
+            updateBalances();
+            displayTransactions();
+            generateCalendar();
+            
+            // フォームクリア（金額以外）
+            document.getElementById('expenseDescription').value = '';
+            document.getElementById('expenseAmount').value = '';
+        });
+        
+        // 残高更新
+        function updateBalances() {
+            let cashBalance = 0;
+            
+            transactions.forEach(transaction => {
+                if (transaction.method === '現金') {
+                    if (transaction.type === 'income') {
+                        cashBalance += transaction.amount;
+                    } else {
+                        cashBalance -= transaction.amount;
+                    }
+                }
+            });
+            
+            document.getElementById('cashBalance').textContent = `¥${cashBalance.toLocaleString()}`;
+            document.getElementById('totalBalance').textContent = `¥${cashBalance.toLocaleString()}`;
+        }
+        
+        // 取引履歴表示
+        function displayTransactions() {
+            const incomeList = document.getElementById('incomeList');
+            const expenseList = document.getElementById('expenseList');
+            
+            incomeList.innerHTML = '';
+            expenseList.innerHTML = '';
+            
+            const sortedTransactions = transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedTransactions.forEach(transaction => {
+                const item = createTransactionElement(transaction);
+                
+                if (transaction.type === 'income') {
+                    incomeList.appendChild(item);
+                } else {
+                    expenseList.appendChild(item);
+                }
+            });
+        }
+        
+        // 取引要素作成
+        function createTransactionElement(transaction) {
+            const item = document.createElement('div');
+            item.className = 'transaction-item';
+            
+            const info = document.createElement('div');
+            info.className = 'transaction-info';
+            
+            const date = document.createElement('div');
+            date.className = 'transaction-date';
+            date.textContent = new Date(transaction.date).toLocaleDateString('ja-JP');
+            
+            const description = document.createElement('div');
+            description.className = 'transaction-description';
+            description.textContent = transaction.description;
+            
+            const method = document.createElement('div');
+            method.className = 'transaction-method';
+            method.textContent = transaction.method;
+            
+            info.appendChild(date);
+            info.appendChild(description);
+            info.appendChild(method);
+            
+            const amount = document.createElement('div');
+            amount.className = `transaction-amount ${transaction.type}`;
+            amount.textContent = `${transaction.type === 'income' ? '+' : '-'}¥${transaction.amount.toLocaleString()}`;
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.textContent = '×';
+            deleteBtn.onclick = () => deleteTransaction(transaction.id);
+            
+            item.appendChild(info);
+            item.appendChild(amount);
+            item.appendChild(deleteBtn);
+            
+            return item;
+        }
+        
+        // 取引削除
+        function deleteTransaction(id) {
+            transactions = transactions.filter(t => t.id !== id);
+            updateBalances();
+            displayTransactions();
+            generateCalendar();
+        }
+        
+        // カード設定保存
+        function saveCardSettings() {
+            cardSettings.cardA.close = parseInt(document.getElementById('cardAClose').value) || 15;
+            cardSettings.cardA.pay = parseInt(document.getElementById('cardAPay').value) || 10;
+            cardSettings.cardB.close = parseInt(document.getElementById('cardBClose').value) || 31;
+            cardSettings.cardB.pay = parseInt(document.getElementById('cardBPay').value) || 27;
+            cardSettings.cardC.close = parseInt(document.getElementById('cardCClose').value) || 5;
+            cardSettings.cardC.pay = parseInt(document.getElementById('cardCPay').value) || 25;
+            
+            alert('設定を保存しました');
+            displayUpcomingPayments();
+        }
+        
+        // 予定支払い表示
+        function displayUpcomingPayments() {
+            const container = document.getElementById('upcomingPayments');
+            container.innerHTML = '';
+            
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            
+            Object.keys(cardSettings).forEach(cardKey => {
+                const card = cardSettings[cardKey];
+                const cardName = cardKey.replace('card', 'カード');
+                
+                const cardExpenses = transactions.filter(t => {
+                    if (t.type !== 'expense' || t.method !== cardName) return false;
+                    
+                    const transactionDate = new Date(t.date);
+                    const closeDate = new Date(currentYear, currentMonth, card.close);
+                    const prevCloseDate = new Date(currentYear, currentMonth - 1, card.close);
+                    
+                    return transactionDate > prevCloseDate && transactionDate <= closeDate;
+                });
+                
+                const totalAmount = cardExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+                const payDate = new Date(currentYear, currentMonth, card.pay);
+                
+                if (totalAmount > 0) {
+                    const paymentItem = document.createElement('div');
+                    paymentItem.className = 'upcoming-payment';
+                    paymentItem.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 0.85rem;">${cardName}</div>
+                                <div style="font-size: 0.7rem; color: #cccccc;">${payDate.toLocaleDateString('ja-JP')}</div>
+                            </div>
+                            <div style="font-size: 1rem; font-weight: 600; color: #ff6b6b;">¥${totalAmount.toLocaleString()}</div>
+                        </div>
+                    `;
+                    container.appendChild(paymentItem);
+                }
+            });
+            
+            if (container.children.length === 0) {
+                container.innerHTML = '<div style="color: #888888; text-align: center; padding: 0.5rem; font-size: 0.8rem;">今月の支払い予定はありません</div>';
+            }
+        }
+        
+        // カレンダー生成
+        function generateCalendar() {
+            const year = parseInt(document.getElementById('calendarYear').value);
+            const month = parseInt(document.getElementById('calendarMonth').value);
+            const grid = document.getElementById('calendarGrid');
+            
+            grid.innerHTML = '';
+            
+            // 曜日ヘッダー
+            const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+            weekdays.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-header-mini';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            // 空のセル
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day-mini';
+                grid.appendChild(emptyDay);
+            }
+            
+            // 日付セル
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day-mini';
+                
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'calendar-day-number-mini';
+                dayNumber.textContent = day;
+                
+                const transactionsDiv = document.createElement('div');
+                transactionsDiv.className = 'calendar-transactions-mini';
+                
+                // その日の取引を取得
+                const dayTransactions = transactions.filter(t => {
+                    const transactionDate = new Date(t.date);
+                    return transactionDate.getFullYear() === year &&
+                           transactionDate.getMonth() === month &&
+                           transactionDate.getDate() === day;
+                });
+                
+                if (dayTransactions.length > 0) {
+                    dayElement.classList.add('has-transaction');
+                    const totalIncome = dayTransactions
+                        .filter(t => t.type === 'income')
+                        .reduce((sum, t) => sum + t.amount, 0);
+                    const totalExpense = dayTransactions
+                        .filter(t => t.type === 'expense')
+                        .reduce((sum, t) => sum + t.amount, 0);
+                    
+                    if (totalIncome > 0) {
+                        transactionsDiv.innerHTML += `<div style="color: #00d26a;">+${Math.round(totalIncome/1000)}k</div>`;
+                    }
+                    if (totalExpense > 0) {
+                        transactionsDiv.innerHTML += `<div style="color: #ff6b6b;">-${Math.round(totalExpense/1000)}k</div>`;
+                    }
+                }
+                
+                dayElement.appendChild(dayNumber);
+                dayElement.appendChild(transactionsDiv);
+                grid.appendChild(dayElement);
+            }
+        }
+        
+        // カレンダー更新イベント
+        document.getElementById('calendarYear').addEventListener('change', generateCalendar);
+        document.getElementById('calendarMonth').addEventListener('change', generateCalendar);
+        
+        // モーダル外クリックで閉じる
+        document.getElementById('settingsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSettings();
+            }
+        });
+        
+        // データ読み込み（サンプルデータ）
+        function loadData() {
+            transactions = [
+                {
+                    id: 1,
+                    type: 'income',
+                    description: '6月分給与',
+                    source: '勤務先A',
+                    amount: 280000,
+                    date: '2025-06-25',
+                    method: '現金'
+                },
+                {
+                    id: 2,
+                    type: 'expense',
+                    description: 'コンビニ',
+                    amount: 850,
+                    date: '2025-06-26',
+                    method: '現金',
+                    category: '食費'
+                },
+                {
+                    id: 3,
+                    type: 'expense',
+                    description: 'ガソリン代',
+                    amount: 4500,
+                    date: '2025-06-24',
+                    method: 'カードA',
+                    category: '交通費'
+                }
+            ];
+            
+            // カード設定のデフォルト値を表示
+            document.getElementById('cardAClose').value = cardSettings.cardA.close;
+            document.getElementById('cardAPay').value = cardSettings.cardA.pay;
+            document.getElementById('cardBClose').value = cardSettings.cardB.close;
+            document.getElementById('cardBPay').value = cardSettings.cardB.pay;
+            document.getElementById('cardCClose').value = cardSettings.cardC.close;
+            document.getElementById('cardCPay').value = cardSettings.cardC.pay;
+        }
+        
+        // キーボードショートカット
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeSettings();
+            }
+        });
+        
+        // タッチイベント対応
+        let touchStartY = 0;
+        document.addEventListener('touchstart', function(e) {
+            touchStartY = e.touches[0].clientY;
+        });
+        
+        document.addEventListener('touchend', function(e) {
+            const touchEndY = e.changedTouches[0].clientY;
+            const touchDiff = touchStartY - touchEndY;
+            
+            // 下にスワイプで設定を開く
+            if (touchDiff < -100) {
+                openSettings();
+            }
+        });
+    </script>
+</body>
+</html>
